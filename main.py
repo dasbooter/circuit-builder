@@ -60,6 +60,9 @@ try:
                 if event.key == pygame.K_HOME:
                     camera.reset()
 
+                if event.key == pygame.K_SPACE:  # Toggle between draw and drag mode
+                    mouse_controller.toggle_mode()
+
             if event.type == pygame.MOUSEWHEEL:
                 camera.zoom(event.y)  # Zoom in or out
                 continue  # Skip the rest of the loop for this event
@@ -84,7 +87,7 @@ try:
         
         draw_battery(screen, center=(640, 300), radius=50, scale=camera.scale, camera_offset=camera.offset)
         pygame.display.flip()
-        clock.tick(30)
+        clock.tick(60)
 
 except Exception as e:
     print(f"ERROR: {e}")
