@@ -126,6 +126,17 @@ class MouseController:
             posNow_world = ((posNow_world[0] - self.camera.offset[0]) / self.camera.scale, 
                             (posNow_world[1] - self.camera.offset[1]) / self.camera.scale)
             self.points.append((self.posStart, posNow_world))
+
+            # Store the node positions in screen coordinates for dragging
+            start_screen = (
+                self.posStart[0] * self.camera.scale + self.camera.offset[0],
+                self.posStart[1] * self.camera.scale + self.camera.offset[1],
+            )
+            end_screen = (
+                posNow_world[0] * self.camera.scale + self.camera.offset[0],
+                posNow_world[1] * self.camera.scale + self.camera.offset[1],
+            )
+            self.nodes.extend([start_screen, end_screen])
             
             # Log connection attempt
             print(f"Attempting to connect line from {self.posStart} to {posNow_world}")
@@ -179,23 +190,17 @@ class MouseController:
 
     def clear_last_point(self):
         if self.points:
-            last_start, last_end = self.points[-1]
-
-            # Convert the last start and end points to world coordinates
-            last_start_world = (last_start[0] * self.camera.scale + self.camera.offset[0], 
-                                last_start[1] * self.camera.scale + self.camera.offset[1])
-            last_end_world = (last_end[0] * self.camera.scale + self.camera.offset[0], 
-                            last_end[1] * self.camera.scale + self.camera.offset[1])
-
-            # Check if the last point connects any components and remove the connection
-            for component in [self.battery_positive, self.battery_negative, self.led_anode, self.led_cathode]:
-                # We should be checking positions or connections, not treating them as arrays
-                if self.is_mouse_on_node(last_start_world, component) or \
-                self.is_mouse_on_node(last_end_world, component):
-                    component.connections.clear()  # Clear connections for that component
-
             logging.debug(f'Clearing last point: {self.points[-1]}')
             self.points.pop()
+
+            # Remove the corresponding node positions if they exist
+            if len(self.nodes) >= 2:
+                self.nodes.pop()
+                self.nodes.pop()
+
+            # Removing a line may break existing connections, so reset them
+            for component in [self.battery_positive, self.battery_negative, self.led_anode, self.led_cathode]:
+                component.connections.clear()
 
 
 
